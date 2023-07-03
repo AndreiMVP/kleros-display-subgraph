@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.51.2",
+    "@graphprotocol/graph-ts": "^0.31.0"
+  },
+  "scripts": {
+    "build": "graph build",
+    "gen": "graph codegen --output-dir generated",
+    "deploy": "yarn gen && graph deploy --product hosted-service andreimvp/kleros-display"
+  }
+}

@@ -1,0 +1,60 @@
+specVersion: 0.0.4
+description: Proof of Humanity subgraph
+features:
+  - fullTextSearch
+schema:
+  file: ./schema.graphql
+dataSources:
+  - name: Kleros
+    kind: ethereum
+    network: xdai
+    source:
+      address: "0x9c1da9a04925bdfdedf0f6421bc7eea8305f9002"
+      abi: Kleros
+      startBlock: 16895601
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./mappings.ts
+      entities:
+        - Dispute
+      abis:
+        - name: Kleros
+          file: ./contracts/kleros.json
+      eventHandlers:
+        - event: DisputeCreation(indexed uint256,indexed address)
+          handler: handleDisputeCreation
+        - event: AppealPossible(indexed uint256,indexed address)
+          handler: handleAppealPossible
+        - event: AppealDecision(indexed uint256,indexed address)
+          handler: handleAppealDecision
+        - event: NewPeriod(indexed uint256,uint8)
+          handler: handleNewPeriod
+templates:
+  - name: Arbitrable
+    kind: ethereum/contract
+    network: xdai
+    source:
+      abi: Arbitrable
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./mappings.ts
+      entities:
+        - Dispute
+        - EvidenceGroup
+        - Evidence
+      abis:
+        - name: Arbitrable
+          file: ./contracts/arbitrable.json
+      eventHandlers:
+        - event: MetaEvidence(indexed uint256,string)
+          handler: handleMetaEvidence
+        - event: Dispute(indexed address,indexed uint256,uint256,uint256)
+          handler: handleDispute
+        - event: Evidence(indexed address,indexed uint256,indexed address,string)
+          handler: handleEvidence
+        - event: Ruling(indexed address,indexed uint256,uint256)
+          handler: handleRuling

@@ -1,0 +1,41 @@
+enum Period {
+  EVIDENCE
+  COMMIT
+  VOTE
+  APPEAL
+  EXECUTION
+}
+
+type ArbitrableHistory @entity {
+  id: ID!
+  metaEvidence: String!
+  disputes: [Dispute!]! @derivedFrom(field: "arbitrableHistory")
+}
+
+type Dispute @entity {
+  id: ID!
+  arbitrated: Bytes!
+  metaEvidenceId: BigInt!
+  arbitrableHistory: ArbitrableHistory
+  ruling: BigInt!
+  ruled: Boolean!
+  period: Period!
+  createdAtBlock: BigInt!
+  lastPeriodChange: BigInt!
+  evidenceGroup: EvidenceGroup @derivedFrom(field: "dispute")
+}
+
+type EvidenceGroup @entity {
+  id: ID!
+  dispute: Dispute!
+  length: BigInt!
+  evidence: [Evidence!]! @derivedFrom(field: "group")
+}
+
+type Evidence @entity(immutable: true) {
+  id: ID!
+  group: EvidenceGroup!
+  creationTime: BigInt!
+  URI: String!
+  sender: Bytes!
+}
