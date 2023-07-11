@@ -34,6 +34,28 @@ type Round @entity {
   jurors: [Bytes!]!
 }
 
+type Draw @entity {
+  "disputeID-appeal-voteID"
+  id: ID!
+  "Lucky juror who got drawn"
+  address: Bytes!
+  "Number of the round"
+  appeal: BigInt!
+  "Number of the dispute"
+  disputeID: BigInt!
+  "Number of the vote"
+  voteID: BigInt!
+}
+
+type TokenAndETHShift @entity {
+  "disputeId-address-(discriminator)"
+  id: ID!
+  ETHAmount: BigInt!
+  address: Bytes!
+  disputeID: BigInt!
+  tokenAmount: BigInt!
+}
+
 type EvidenceGroup @entity {
   id: Bytes!
   dispute: Dispute

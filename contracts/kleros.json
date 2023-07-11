@@ -225,14 +225,39 @@
 			},
 			{
 				"name": "_appeal",
-				"type": "uint8"
+				"type": "uint256"
 			},
 			{
 				"name": "_voteID",
-				"type": "uint8"
+				"type": "uint256"
 			}
 		],
 		"name": "Draw",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "_address",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "_disputeID",
+				"type": "uint256"
+			},
+			{
+				"name": "_tokenAmount",
+				"type": "int256"
+			},
+			{
+				"name": "_ETHAmount",
+				"type": "int256"
+			}
+		],
+		"name": "TokenAndETHShift",
 		"type": "event"
 	},
 	{

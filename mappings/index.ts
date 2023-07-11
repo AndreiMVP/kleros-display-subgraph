@@ -4,6 +4,7 @@ import {
   DisputeCreation as DisputeCreationEv,
   NewPeriod as NewPeriodEv,
   Draw as DrawEv,
+  TokenAndETHShift as TokenAndETHShiftEv,
   Kleros,
 } from "../generated/Kleros/Kleros";
 import {
@@ -16,9 +17,11 @@ import { Arbitrable as ArbitrableContract } from "../generated/templates";
 import {
   ArbitrableHistory,
   Dispute,
+  Draw,
   Evidence,
   EvidenceGroup,
   Round,
+  TokenAndETHShift,
 } from "../generated/schema";
 import { ADDRESS, ONE, ZERO, ZERO_B } from "./const";
 import { BigInt, Bytes, crypto } from "@graphprotocol/graph-ts";
@@ -121,16 +124,44 @@ export function handleDraw(ev: DrawEv): void {
   const round = Round.load(
     Bytes.fromByteArray(
       crypto.keccak256(
-        biToBytes(ev.params._disputeID).concat(
-          biToBytes(BigInt.fromI32(ev.params._appeal))
-        )
+        biToBytes(ev.params._disputeID).concat(biToBytes(ev.params._appeal))
       )
     )
   );
   if (round == null) return;
 
+  const draw = new Draw(
+    `${ev.params._disputeID}-${ev.params._appeal}-${ev.params._voteID}`
+  );
+  draw.disputeID = ev.params._disputeID;
+  draw.appeal = ev.params._appeal;
+  draw.voteID = ev.params._voteID;
+  draw.address = ev.params._address;
+  draw.save();
+
   round.jurors.push(ev.params._address);
   round.save();
+}
+
+export function handleTokenAndETHShift(ev: TokenAndETHShiftEv): void {
+  // Keep rolling until we find a free ID
+  let i = 0;
+  while (true) {
+    const shift = TokenAndETHShift.load(
+      `${ev.params._disputeID}-${ev.params._address.toHexString()}-${i}`
+    );
+    if (shift == null) break;
+    i++;
+  }
+
+  const shift = new TokenAndETHShift(
+    `${ev.params._disputeID}-${ev.params._address.toHexString()}-${i}`
+  );
+  shift.ETHAmount = ev.params._ETHAmount;
+  shift.address = ev.params._address;
+  shift.disputeID = ev.params._disputeID;
+  shift.tokenAmount = ev.params._tokenAmount;
+  shift.save();
 }
 
 export function handleMetaEvidence(ev: MetaEvidenceEv): void {
