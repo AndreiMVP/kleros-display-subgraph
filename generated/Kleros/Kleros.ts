@@ -119,12 +119,42 @@ export class Draw__Params {
     return this._event.parameters[1].value.toBigInt();
   }
 
-  get _appeal(): i32 {
-    return this._event.parameters[2].value.toI32();
+  get _appeal(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
   }
 
-  get _voteID(): i32 {
-    return this._event.parameters[3].value.toI32();
+  get _voteID(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+}
+
+export class TokenAndETHShift extends ethereum.Event {
+  get params(): TokenAndETHShift__Params {
+    return new TokenAndETHShift__Params(this);
+  }
+}
+
+export class TokenAndETHShift__Params {
+  _event: TokenAndETHShift;
+
+  constructor(event: TokenAndETHShift) {
+    this._event = event;
+  }
+
+  get _address(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get _disputeID(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get _tokenAmount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get _ETHAmount(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
   }
 }
 
