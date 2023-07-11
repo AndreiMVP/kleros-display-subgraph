@@ -3,24 +3,25 @@ import {
   AppealPossible as AppealPossibleEv,
   DisputeCreation as DisputeCreationEv,
   NewPeriod as NewPeriodEv,
-} from "./generated/Kleros/Kleros";
+  Draw as DrawEv,
+  Kleros,
+} from "../generated/Kleros/Kleros";
 import {
   MetaEvidence as MetaEvidenceEv,
   Dispute as DisputeEv,
   Evidence as EvidenceEv,
   Ruling as RulingEv,
-} from "./generated/templates/Arbitrable/Arbitrable";
-import { Arbitrable as ArbitrableContract } from "./generated/templates";
-import { BigInt } from "@graphprotocol/graph-ts";
+} from "../generated/templates/Arbitrable/Arbitrable";
+import { Arbitrable as ArbitrableContract } from "../generated/templates";
 import {
   ArbitrableHistory,
   Dispute,
   Evidence,
   EvidenceGroup,
-} from "./generated/schema";
-
-const ZERO = BigInt.fromI32(0);
-const ONE = BigInt.fromI32(1);
+  Round,
+} from "../generated/schema";
+import { ADDRESS, ONE, ZERO, ZERO_B } from "./const";
+import { BigInt, Bytes, crypto } from "@graphprotocol/graph-ts";
 
 export class Period {
   static readonly EVIDENCE: string = "EVIDENCE";
@@ -47,6 +48,10 @@ export class Period {
   }
 }
 
+export function biToBytes(bi: BigInt): Bytes {
+  return bi.isZero() ? ZERO_B : Bytes.fromByteArray(Bytes.fromBigInt(bi));
+}
+
 export function handleDisputeCreation(ev: DisputeCreationEv): void {
   ArbitrableContract.create(ev.params._arbitrable);
 
@@ -58,7 +63,20 @@ export function handleDisputeCreation(ev: DisputeCreationEv): void {
   dispute.period = Period.EVIDENCE;
   dispute.createdAtBlock = ev.block.number;
   dispute.lastPeriodChange = ev.block.timestamp;
+  dispute.nbRounds = ONE;
+  dispute.nbChoices = Kleros.bind(ADDRESS)
+    .disputes(ev.params._disputeID)
+    .getNumberOfChoices();
   dispute.save();
+
+  const round = new Round(
+    Bytes.fromByteArray(
+      crypto.keccak256(biToBytes(ev.params._disputeID).concat(ZERO_B))
+    )
+  );
+  round.dispute = dispute.id;
+  round.jurors = [];
+  round.save();
 }
 
 export function handleAppealPossible(ev: AppealPossibleEv): void {
@@ -72,22 +90,54 @@ export function handleAppealPossible(ev: AppealPossibleEv): void {
 export function handleAppealDecision(ev: AppealDecisionEv): void {
   const dispute = Dispute.load(ev.params._disputeID.toString());
   if (dispute == null) return;
+
+  const round = new Round(
+    Bytes.fromByteArray(
+      crypto.keccak256(
+        biToBytes(ev.params._disputeID).concat(biToBytes(dispute.nbRounds))
+      )
+    )
+  );
+  round.dispute = dispute.id;
+  round.jurors = [];
+  round.save();
+
   dispute.period = Period.EVIDENCE;
   dispute.lastPeriodChange = ev.block.timestamp;
+  dispute.nbRounds = dispute.nbRounds.plus(ONE);
   dispute.save();
 }
 
 export function handleNewPeriod(ev: NewPeriodEv): void {
   const dispute = Dispute.load(ev.params._disputeID.toString());
   if (dispute == null) return;
+
   dispute.period = Period.parse(ev.params._period);
   dispute.lastPeriodChange = ev.block.timestamp;
   dispute.save();
 }
 
+export function handleDraw(ev: DrawEv): void {
+  const round = Round.load(
+    Bytes.fromByteArray(
+      crypto.keccak256(
+        biToBytes(ev.params._disputeID).concat(
+          biToBytes(BigInt.fromI32(ev.params._appeal))
+        )
+      )
+    )
+  );
+  if (round == null) return;
+
+  round.jurors.push(ev.params._address);
+  round.save();
+}
+
 export function handleMetaEvidence(ev: MetaEvidenceEv): void {
   const arbitrableHistory = new ArbitrableHistory(
-    ev.address.toHex() + "#" + ev.params._metaEvidenceID.toString()
+    Bytes.fromByteArray(
+      crypto.keccak256(ev.address.concat(biToBytes(ev.params._metaEvidenceID)))
+    )
   );
   arbitrableHistory.metaEvidence = ev.params._evidence;
   arbitrableHistory.save();
@@ -95,7 +145,9 @@ export function handleMetaEvidence(ev: MetaEvidenceEv): void {
 
 export function handleDispute(ev: DisputeEv): void {
   const arbitrableHistory = ArbitrableHistory.load(
-    ev.address.toHex() + "#" + ev.params._metaEvidenceID.toString()
+    Bytes.fromByteArray(
+      crypto.keccak256(ev.address.concat(biToBytes(ev.params._metaEvidenceID)))
+    )
   );
 
   const dispute = Dispute.load(ev.params._disputeID.toString());
@@ -105,31 +157,40 @@ export function handleDispute(ev: DisputeEv): void {
     dispute.arbitrableHistory = arbitrableHistory.id;
   dispute.save();
 
-  const evidenceGroup = new EvidenceGroup(
-    ev.address.toHex() + "#" + ev.params._evidenceGroupID.toHex()
+  const evidenceGroupId = Bytes.fromByteArray(
+    crypto.keccak256(ev.address.concat(biToBytes(ev.params._evidenceGroupID)))
   );
+  let evidenceGroup = EvidenceGroup.load(evidenceGroupId);
+  if (evidenceGroup == null) {
+    evidenceGroup = new EvidenceGroup(evidenceGroupId);
+    evidenceGroup.length = ZERO;
+  }
   evidenceGroup.dispute = dispute.id;
-  evidenceGroup.length = ZERO;
   evidenceGroup.save();
 }
 
 export function handleEvidence(ev: EvidenceEv): void {
-  const evidenceGroup = EvidenceGroup.load(
-    ev.address.toHex() + "#" + ev.params._evidenceGroupID.toHex()
+  const evidenceGroupId = Bytes.fromByteArray(
+    crypto.keccak256(ev.address.concat(biToBytes(ev.params._evidenceGroupID)))
   );
-  if (evidenceGroup == null) return;
+  let evidenceGroup = EvidenceGroup.load(evidenceGroupId);
+  if (evidenceGroup == null) {
+    evidenceGroup = new EvidenceGroup(evidenceGroupId);
+    evidenceGroup.length = ZERO;
+  }
+  evidenceGroup.length = evidenceGroup.length.plus(ONE);
+  evidenceGroup.save();
 
   const evidence = new Evidence(
-    evidenceGroup.id + "#" + evidenceGroup.length.toString()
+    Bytes.fromByteArray(
+      crypto.keccak256(evidenceGroupId.concat(biToBytes(evidenceGroup.length)))
+    )
   );
   evidence.URI = ev.params._evidence;
   evidence.group = evidenceGroup.id;
   evidence.creationTime = ev.block.timestamp;
   evidence.sender = ev.params._party;
   evidence.save();
-
-  evidenceGroup.length = evidenceGroup.length.plus(ONE);
-  evidenceGroup.save();
 }
 
 export function handleRuling(ev: RulingEv): void {

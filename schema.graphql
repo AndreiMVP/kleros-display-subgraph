@@ -3,11 +3,11 @@ enum Period {
   COMMIT
   VOTE
   APPEAL
-  EXECUTION
+  EXECUTED
 }
 
 type ArbitrableHistory @entity {
-  id: ID!
+  id: Bytes!
   metaEvidence: String!
   disputes: [Dispute!]! @derivedFrom(field: "arbitrableHistory")
 }
@@ -22,18 +22,27 @@ type Dispute @entity {
   period: Period!
   createdAtBlock: BigInt!
   lastPeriodChange: BigInt!
-  evidenceGroup: EvidenceGroup @derivedFrom(field: "dispute")
+  nbChoices: BigInt!
+  nbRounds: BigInt!
+  rounds: [Round!]! @derivedFrom(field: "dispute")
+  evidenceGroup: EvidenceGroup! @derivedFrom(field: "dispute")
+}
+
+type Round @entity {
+  id: Bytes!
+  dispute: Dispute!
+  jurors: [Bytes!]!
 }
 
 type EvidenceGroup @entity {
-  id: ID!
-  dispute: Dispute!
+  id: Bytes!
+  dispute: Dispute
   length: BigInt!
   evidence: [Evidence!]! @derivedFrom(field: "group")
 }
 
 type Evidence @entity(immutable: true) {
-  id: ID!
+  id: Bytes!
   group: EvidenceGroup!
   creationTime: BigInt!
   URI: String!

@@ -5,11 +5,11 @@ schema:
 dataSources:
   - name: Kleros
     kind: ethereum
-    network: mainnet
+    network: {{chain}}
     source:
-      address: "0x988b3a538b618c7a603e1c11ab82cd16dbe28069"
+      address: "{{address}}"
       abi: Kleros
-      startBlock: 7303699
+      startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -34,7 +34,7 @@ dataSources:
 templates:
   - name: Arbitrable
     kind: ethereum/contract
-    network: mainnet
+    network: {{chain}}
     source:
       abi: Arbitrable
     mapping:

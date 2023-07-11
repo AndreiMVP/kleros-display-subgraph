@@ -1,2 +1,5 @@
 node_modules
 build
+
+mappings/const.ts
+subgraph.yaml
