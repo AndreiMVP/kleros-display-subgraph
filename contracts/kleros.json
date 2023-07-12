@@ -225,11 +225,11 @@
 			},
 			{
 				"name": "_appeal",
-				"type": "uint8"
+				"type": "uint256"
 			},
 			{
 				"name": "_voteID",
-				"type": "uint8"
+				"type": "uint256"
 			}
 		],
 		"name": "Draw",
@@ -281,5 +281,145 @@
 		"payable": false,
 		"stateMutability": "view",
 		"type": "function"
-	}
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+		  {
+			"indexed": true,
+			"name": "_address",
+			"type": "address"
+		  },
+		  {
+			"indexed": false,
+			"name": "_subcourtID",
+			"type": "uint256"
+		  },
+		  {
+			"indexed": false,
+			"name": "_stake",
+			"type": "uint128"
+		  },
+		  {
+			"indexed": false,
+			"name": "_newTotalStake",
+			"type": "uint256"
+		  }
+		],
+		"name": "StakeSet",
+		"type": "event"
+	  },
+	  {
+		"anonymous": false,
+		"inputs": [
+		  {
+			"indexed": true,
+			"name": "_address",
+			"type": "address"
+		  },
+		  {
+			"indexed": true,
+			"name": "_disputeID",
+			"type": "uint256"
+		  },
+		  {
+			"indexed": false,
+			"name": "_tokenAmount",
+			"type": "int256"
+		  },
+		  {
+			"indexed": false,
+			"name": "_ETHAmount",
+			"type": "int256"
+		  }
+		],
+		"name": "TokenAndETHShift",
+		"type": "event"
+	  },
+	  {
+		"constant": true,
+		"inputs": [
+		  {
+			"name": "_disputeID",
+			"type": "uint256"
+		  },
+		  {
+			"name": "_appeal",
+			"type": "uint256"
+		  },
+		  {
+			"name": "_voteID",
+			"type": "uint256"
+		  }
+		],
+		"name": "getVote",
+		"outputs": [
+		  {
+			"name": "account",
+			"type": "address"
+		  },
+		  {
+			"name": "commit",
+			"type": "bytes32"
+		  },
+		  {
+			"name": "choice",
+			"type": "uint256"
+		  },
+		  {
+			"name": "voted",
+			"type": "bool"
+		  }
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	  },
+	  {
+		"constant": true,
+		"inputs": [
+		  {
+			"name": "",
+			"type": "uint256"
+		  }
+		],
+		"name": "disputes",
+		"outputs": [
+		  {
+			"name": "subcourtID",
+			"type": "uint96"
+		  },
+		  {
+			"name": "arbitrated",
+			"type": "address"
+		  },
+		  {
+			"name": "numberOfChoices",
+			"type": "uint256"
+		  },
+		  {
+			"name": "period",
+			"type": "uint8"
+		  },
+		  {
+			"name": "lastPeriodChange",
+			"type": "uint256"
+		  },
+		  {
+			"name": "drawsInRound",
+			"type": "uint256"
+		  },
+		  {
+			"name": "commitsInRound",
+			"type": "uint256"
+		  },
+		  {
+			"name": "ruled",
+			"type": "bool"
+		  }
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	  }
 ]

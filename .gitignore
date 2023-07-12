@@ -1,5 +1,5 @@
 node_modules
 build
 
-mappings/const.ts
+mappings/hardcoded.ts
 subgraph.yaml

@@ -29,8 +29,12 @@ dataSources:
           handler: handleAppealDecision
         - event: NewPeriod(indexed uint256,uint8)
           handler: handleNewPeriod
-        - event: Draw(indexed address,indexed uint256,uint8,uint8)
+        - event: Draw(indexed address,indexed uint256,uint256,uint256)
           handler: handleDraw
+        - event: TokenAndETHShift(indexed address,indexed uint256,int256,int256)
+          handler: handleTokenAndETHShift
+        - event: StakeSet(indexed address,uint256,uint128,uint256)
+          handler: handleStakeSet
 templates:
   - name: Arbitrable
     kind: ethereum/contract

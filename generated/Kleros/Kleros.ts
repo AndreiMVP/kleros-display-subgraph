@@ -119,12 +119,72 @@ export class Draw__Params {
     return this._event.parameters[1].value.toBigInt();
   }
 
-  get _appeal(): i32 {
-    return this._event.parameters[2].value.toI32();
+  get _appeal(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
   }
 
-  get _voteID(): i32 {
-    return this._event.parameters[3].value.toI32();
+  get _voteID(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+}
+
+export class StakeSet extends ethereum.Event {
+  get params(): StakeSet__Params {
+    return new StakeSet__Params(this);
+  }
+}
+
+export class StakeSet__Params {
+  _event: StakeSet;
+
+  constructor(event: StakeSet) {
+    this._event = event;
+  }
+
+  get _address(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get _subcourtID(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get _stake(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get _newTotalStake(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+}
+
+export class TokenAndETHShift extends ethereum.Event {
+  get params(): TokenAndETHShift__Params {
+    return new TokenAndETHShift__Params(this);
+  }
+}
+
+export class TokenAndETHShift__Params {
+  _event: TokenAndETHShift;
+
+  constructor(event: TokenAndETHShift) {
+    this._event = event;
+  }
+
+  get _address(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get _disputeID(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get _tokenAmount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get _ETHAmount(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
   }
 }
 
@@ -154,6 +214,124 @@ export class Kleros__appealPeriodResult {
 }
 
 export class Kleros__disputesResult {
+  value0: BigInt;
+  value1: Address;
+  value2: BigInt;
+  value3: i32;
+  value4: BigInt;
+  value5: BigInt;
+  value6: BigInt;
+  value7: boolean;
+
+  constructor(
+    value0: BigInt,
+    value1: Address,
+    value2: BigInt,
+    value3: i32,
+    value4: BigInt,
+    value5: BigInt,
+    value6: BigInt,
+    value7: boolean
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+    this.value4 = value4;
+    this.value5 = value5;
+    this.value6 = value6;
+    this.value7 = value7;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromAddress(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set(
+      "value3",
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(this.value3))
+    );
+    map.set("value4", ethereum.Value.fromUnsignedBigInt(this.value4));
+    map.set("value5", ethereum.Value.fromUnsignedBigInt(this.value5));
+    map.set("value6", ethereum.Value.fromUnsignedBigInt(this.value6));
+    map.set("value7", ethereum.Value.fromBoolean(this.value7));
+    return map;
+  }
+
+  getSubcourtID(): BigInt {
+    return this.value0;
+  }
+
+  getArbitrated(): Address {
+    return this.value1;
+  }
+
+  getNumberOfChoices(): BigInt {
+    return this.value2;
+  }
+
+  getPeriod(): i32 {
+    return this.value3;
+  }
+
+  getLastPeriodChange(): BigInt {
+    return this.value4;
+  }
+
+  getDrawsInRound(): BigInt {
+    return this.value5;
+  }
+
+  getCommitsInRound(): BigInt {
+    return this.value6;
+  }
+
+  getRuled(): boolean {
+    return this.value7;
+  }
+}
+
+export class Kleros__getVoteResult {
+  value0: Address;
+  value1: Bytes;
+  value2: BigInt;
+  value3: boolean;
+
+  constructor(value0: Address, value1: Bytes, value2: BigInt, value3: boolean) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromAddress(this.value0));
+    map.set("value1", ethereum.Value.fromFixedBytes(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set("value3", ethereum.Value.fromBoolean(this.value3));
+    return map;
+  }
+
+  getAccount(): Address {
+    return this.value0;
+  }
+
+  getCommit(): Bytes {
+    return this.value1;
+  }
+
+  getChoice(): BigInt {
+    return this.value2;
+  }
+
+  getVoted(): boolean {
+    return this.value3;
+  }
+}
+
+export class Kleros__disputes1Result {
   value0: BigInt;
   value1: Address;
   value2: BigInt;
@@ -397,6 +575,100 @@ export class Kleros extends ethereum.SmartContract {
     let value = result.value;
     return ethereum.CallResult.fromValue(
       new Kleros__disputesResult(
+        value[0].toBigInt(),
+        value[1].toAddress(),
+        value[2].toBigInt(),
+        value[3].toI32(),
+        value[4].toBigInt(),
+        value[5].toBigInt(),
+        value[6].toBigInt(),
+        value[7].toBoolean()
+      )
+    );
+  }
+
+  getVote(
+    _disputeID: BigInt,
+    _appeal: BigInt,
+    _voteID: BigInt
+  ): Kleros__getVoteResult {
+    let result = super.call(
+      "getVote",
+      "getVote(uint256,uint256,uint256):(address,bytes32,uint256,bool)",
+      [
+        ethereum.Value.fromUnsignedBigInt(_disputeID),
+        ethereum.Value.fromUnsignedBigInt(_appeal),
+        ethereum.Value.fromUnsignedBigInt(_voteID)
+      ]
+    );
+
+    return new Kleros__getVoteResult(
+      result[0].toAddress(),
+      result[1].toBytes(),
+      result[2].toBigInt(),
+      result[3].toBoolean()
+    );
+  }
+
+  try_getVote(
+    _disputeID: BigInt,
+    _appeal: BigInt,
+    _voteID: BigInt
+  ): ethereum.CallResult<Kleros__getVoteResult> {
+    let result = super.tryCall(
+      "getVote",
+      "getVote(uint256,uint256,uint256):(address,bytes32,uint256,bool)",
+      [
+        ethereum.Value.fromUnsignedBigInt(_disputeID),
+        ethereum.Value.fromUnsignedBigInt(_appeal),
+        ethereum.Value.fromUnsignedBigInt(_voteID)
+      ]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new Kleros__getVoteResult(
+        value[0].toAddress(),
+        value[1].toBytes(),
+        value[2].toBigInt(),
+        value[3].toBoolean()
+      )
+    );
+  }
+
+  disputes1(param0: BigInt): Kleros__disputes1Result {
+    let result = super.call(
+      "disputes",
+      "disputes(uint256):(uint96,address,uint256,uint8,uint256,uint256,uint256,bool)",
+      [ethereum.Value.fromUnsignedBigInt(param0)]
+    );
+
+    return new Kleros__disputes1Result(
+      result[0].toBigInt(),
+      result[1].toAddress(),
+      result[2].toBigInt(),
+      result[3].toI32(),
+      result[4].toBigInt(),
+      result[5].toBigInt(),
+      result[6].toBigInt(),
+      result[7].toBoolean()
+    );
+  }
+
+  try_disputes1(param0: BigInt): ethereum.CallResult<Kleros__disputes1Result> {
+    let result = super.tryCall(
+      "disputes",
+      "disputes(uint256):(uint96,address,uint256,uint8,uint256,uint256,uint256,bool)",
+      [ethereum.Value.fromUnsignedBigInt(param0)]
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new Kleros__disputes1Result(
         value[0].toBigInt(),
         value[1].toAddress(),
         value[2].toBigInt(),

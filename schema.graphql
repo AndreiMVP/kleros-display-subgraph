@@ -6,6 +6,20 @@ enum Period {
   EXECUTED
 }
 
+type Subcourt @entity {
+  id: ID!
+  staked: BigInt!
+  stakes: [Stake!]! @derivedFrom(field: "subcourt")
+}
+
+type Arbitrable @entity {
+  id: Bytes!
+  firstInteractionBlock: BigInt!
+  firstInteractionTimestamp: BigInt!
+  nbDisputes: BigInt!
+  disputes: [Dispute!]! @derivedFrom(field: "arbitrated")
+}
+
 type ArbitrableHistory @entity {
   id: Bytes!
   metaEvidence: String!
@@ -14,24 +28,50 @@ type ArbitrableHistory @entity {
 
 type Dispute @entity {
   id: ID!
-  arbitrated: Bytes!
-  metaEvidenceId: BigInt!
-  arbitrableHistory: ArbitrableHistory
   ruling: BigInt!
   ruled: Boolean!
   period: Period!
+  nbRounds: BigInt!
+  nbChoices: BigInt!
+  arbitrated: Arbitrable!
+  metaEvidenceId: BigInt!
   createdAtBlock: BigInt!
   lastPeriodChange: BigInt!
-  nbChoices: BigInt!
-  nbRounds: BigInt!
+  arbitrableHistory: ArbitrableHistory
+  ongoing: [Activity!]! @derivedFrom(field: "dispute")
   rounds: [Round!]! @derivedFrom(field: "dispute")
   evidenceGroup: EvidenceGroup! @derivedFrom(field: "dispute")
+  rewards: [Reward!]! @derivedFrom(field: "dispute")
+  penalties: [Penalty!]! @derivedFrom(field: "dispute")
 }
 
 type Round @entity {
-  id: Bytes!
+  id: ID!
+  index: BigInt!
   dispute: Dispute!
-  jurors: [Bytes!]!
+  subcourt: Subcourt!
+  votesCastedCount: BigInt!
+  drawnCount: BigInt!
+  ongoing: [Activity!]! @derivedFrom(field: "round")
+  votes: [Vote!]! @derivedFrom(field: "round")
+  choices: [Choice!]! @derivedFrom(field: "round")
+}
+
+type Choice @entity {
+  id: ID!
+  round: Round!
+  index: BigInt!
+  voteCount: BigInt!
+  votes: [Vote!]! @derivedFrom(field: "choice")
+}
+
+type Vote @entity {
+  id: ID!
+  index: BigInt!
+  juror: Juror!
+  round: Round!
+  casted: Boolean!
+  choice: Choice
 }
 
 type EvidenceGroup @entity {
@@ -47,4 +87,45 @@ type Evidence @entity(immutable: true) {
   creationTime: BigInt!
   URI: String!
   sender: Bytes!
+}
+
+type Juror @entity {
+  id: ID!
+  totalStaked: BigInt!
+  totalVotesDrawn: BigInt!
+  nbDisputesAttended: BigInt!
+  ongoing: [Activity!]! @derivedFrom(field: "juror")
+  votes: [Vote!]! @derivedFrom(field: "juror")
+  stakes: [Stake!]! @derivedFrom(field: "juror")
+  rewards: [Reward!]! @derivedFrom(field: "juror")
+  penalties: [Penalty!]! @derivedFrom(field: "juror")
+}
+
+type Activity @entity {
+  id: ID!
+  juror: Juror!
+  round: Round!
+  dispute: Dispute!
+}
+
+type Stake @entity {
+  id: ID!
+  juror: Juror!
+  subcourt: Subcourt!
+  amount: BigInt!
+}
+
+type Reward @entity {
+  id: Bytes!
+  juror: Juror!
+  dispute: Dispute!
+  tokens: BigInt!
+  ETH: BigInt!
+}
+
+type Penalty @entity {
+  id: Bytes!
+  juror: Juror!
+  dispute: Dispute!
+  tokens: BigInt!
 }
